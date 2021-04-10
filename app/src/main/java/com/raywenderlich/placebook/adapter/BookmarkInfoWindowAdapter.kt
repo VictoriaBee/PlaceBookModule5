@@ -40,6 +40,9 @@ class BookmarkInfoWindowAdapter(context: Activity) :
         val phoneView = contents.findViewById<TextView>(R.id.phone)
         phoneView.text = marker?.snippet ?: ""
 
+        // To make imageView work.
+        val imageView = contents.findViewById<ImageView>(R.id.photo)
+
         imageView.setImageBitmap((marker?.tag as
                 MapsActivity.PlaceInfo).image)
 

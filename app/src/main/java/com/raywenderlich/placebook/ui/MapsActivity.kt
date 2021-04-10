@@ -31,14 +31,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var marker = HashMap<Long, Marker>()
+
+    // Holds the MapsViewModel; initialized when map is ready.
+    private val mapsViewModel by viewModels<MapsViewModel>()
 
     companion object {
         private const val REQUEST_LOCATION = 1
         private const val TAG = "MapsActivity"
     }
-
-    // Holds the MapsViewModel; initialized when map is ready.
-    private val mapsViewModel by viewModels<MapsViewModel>()
 
     // Loads the activity_maps.xml Layout and finds the map Fragment from Layout
     // and uses initializes map with getMapAsync().
@@ -72,7 +73,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
     // Creating the PlacesClient.
     private fun setupPlacesClient() {
-        Places.initialize(getApplicationContext(),       // Changed syntax.
+        Places.initialize(applicationContext,       // Changed syntax.
             getString(R.string.google_maps_key));
         placesClient = Places.createClient(this);
     }
