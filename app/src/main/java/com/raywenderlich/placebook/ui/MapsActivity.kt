@@ -1,14 +1,19 @@
 package com.raywenderlich.placebook.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Observer
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -31,12 +36,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var marker = HashMap<Long, Marker>()
+    private var markers = HashMap<Long, Marker>()
 
     // Holds the MapsViewModel; initialized when map is ready.
     private val mapsViewModel by viewModels<MapsViewModel>()
 
     companion object {
+        // Defines a key for storing the bookmark ID in the intent extras.
+        const val EXTRA_BOOKMARK_ID =
+            "com.raywenderlich.placebook.EXTRA_BOOKMARK_ID"
         private const val REQUEST_LOCATION = 1
         private const val TAG = "MapsActivity"
     }
@@ -70,10 +78,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         map = googleMap
         setupMapListeners()
         getCurrentLocation()
+        createBookmarkMarkerObserver()
     }
     // Creating the PlacesClient.
     private fun setupPlacesClient() {
-        Places.initialize(applicationContext,       // Changed syntax.
+        Places.initialize(getApplicationContext(),       // Changed syntax.
             getString(R.string.google_maps_key));
         placesClient = Places.createClient(this);
     }
@@ -148,6 +157,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         map.setOnPoiClickListener {
             displayPoi(it)
         }
+        map.setOnInfoWindowClickListener {
+            handleInfoWindowClick(it)
+        }
     }
 
     // References the refactored method to get details of POIs.
@@ -200,7 +212,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun displayPoiGetPhotoStep(place: Place) {
         // 1 - Gets the first and only PhotoMetaData obj from retrieved array.
         val photoMetadata = place
-                .getPhotoMetadatas()?.get(0)
+                .photoMetadatas?.get(0)
         // 2 - If no photo for place, skips to the next step.
         if (photoMetadata == null) {
             // Passes along object and a null bitmap image.
@@ -241,7 +253,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     // Displays a marker with place details and photo.
     private fun displayPoiDisplayStep(place: Place, photo: Bitmap?) {
         // Adds a marker to the map by creating newMarkerOptions obj.
-        map.addMarker(MarkerOptions()
+        val marker = map.addMarker(MarkerOptions()
             // Sets properties to place details and iconPhoto.
             .position(place.latLng as LatLng)
             .title(place.name)
@@ -249,24 +261,47 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Marker tag holds full place obj and associated bitmap photo.
         marker?.tag = PlaceInfo(place, photo)
+        marker?.showInfoWindow()
+        // Instructs map to display the Info window for the marker.
+        marker?.showInfoWindow()
     }
 
-    // Handles taps on a pace info window.
+    // Handles taps on a place info window.
+    // Saves the bookmark if it hasn't been saved before,
+    // or it starts the bookmark details Activity
+    // if the bookmark hasn't already been saved.
     private fun handleInfoWindowClick(marker: Marker) {
-        val placeInfo = (marker.tag as PlaceInfo)
-        GlobalScope.launch {
-            mapsViewModel.addBookmarkFromPlace(placeInfo.place,
-                placeInfo.image)
+        when (marker.tag) {
+            is MapsActivity.PlaceInfo -> {
+                val placeInfo = (marker.tag as PlaceInfo)
+                if (placeInfo.place != null && placeInfo.image != null) {
+                    GlobalScope.launch {
+                        mapsViewModel.addBookmarkFromPlace(
+                            placeInfo.place,
+                            placeInfo.image)
+                    }
+                }
+                marker.remove();
+            }
+            is MapsViewModel.BookmarkMarkerView -> {
+                val bookmarkMarkerView = (marker.tag as
+                        MapsViewModel.BookmarkMarkerView)
+                marker.hideInfoWindow()
+                bookmarkMarkerView.id?.let {
+                    startBookmarkDetails(it)
+                }
+            }
         }
-        marker.remove()
     }
 
     // Helper method that adds a single blue marker to the map based on BookmarkMarkerView.
     private fun addPlaceMarker(
-        bookmark: MapsViewModel.BookMarkerView): Marker? {
+        bookmark: MapsViewModel.BookmarkMarkerView): Marker? {
 
         val marker = map.addMarker(MarkerOptions()
             .position(bookmark.location)
+            .title(bookmark.name)
+            .snippet(bookmark.phone)
             .icon(BitmapDescriptorFactory.defaultMarker(
                 BitmapDescriptorFactory.HUE_AZURE))
             .alpha(0.8f))
@@ -279,10 +314,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     // Walks through a list of BookmarkMarkerView objects
     // and calls addPlaceMarker() for each.
     private fun displayAllBookmarks(
-        bookmarks: List<MapsViewModel.BookMarkerView>) {
+        bookmarks: List<MapsViewModel.BookmarkMarkerView>) {
         for (bookmark in bookmarks) {
             addPlaceMarker(bookmark)
         }
+    }
+
+    private fun createBookmarkMarkerObserver() {
+        // 1 - Uses getBookmarkMarkerViews() on MapsViewModel to retrieve a LiveData object.
+        mapsViewModel.getBookmarkMarkerViews()?.observe(
+            // Telling the observer to follow lifecycle of current activity.
+            this, Observer<List<MapsViewModel.BookmarkMarkerView>> {
+                // 2 - When has updated data, clears all existing markers on the map.
+                map.clear()
+                markers.clear()
+                // 3 - Calls displayAllBookmarks() passing in list of updated objects.
+                it?.let {
+                    displayAllBookmarks(it)
+                }
+            })
+    }
+
+    private fun startBookmarkDetails(bookmarkId: Long) {
+        val intent = Intent(this, BookmarkDetailsActivity::class.java)
+        // Adds the bookmarkID as an extra parameter on the Intent.
+        intent.putExtra(EXTRA_BOOKMARK_ID, bookmarkId)
+        startActivity(intent)
     }
 
     // Class to hold original Place obj and image.

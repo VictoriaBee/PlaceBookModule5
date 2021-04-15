@@ -9,8 +9,8 @@ import com.raywenderlich.placebook.model.Bookmark
 // 1 - Defines class with constructor that passes in an object named context.
 class BookmarkRepo(context: Context) {
     // 2 - Properties BookmarkRepo will use for data source.
-    private var db = PlaceBookDatabase.getInstance(context)
-    private var bookmarkDao: BookmarkDao = db.bookmarkDao()
+    private val db: PlaceBookDatabase = PlaceBookDatabase.getInstance(context)
+    private val bookmarkDao: BookmarkDao = db.bookmarkDao()
 
     // 3 - Creates addBookmark() to allow a single Bookmark to be added to repo.
     fun addBookmark(bookmark: Bookmark): Long? {
@@ -30,4 +30,10 @@ class BookmarkRepo(context: Context) {
         get() {
             return bookmarkDao.loadAll()
         }
+
+    // Returns a live bookmark from the bookmark DAO.
+    fun getLiveBookmark(bookmarkId: Long): LiveData<Bookmark> {
+        val bookmark = bookmarkDao.loadLiveBookmark(bookmarkId)
+        return bookmark
+    }
 }

@@ -1,7 +1,6 @@
 package com.raywenderlich.placebook.adapter
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -9,10 +8,11 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Marker
 import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.ui.MapsActivity
+import com.raywenderlich.placebook.viewmodel.MapsViewModel
 
 // 1 - A single parameter for hosting activity;
 //      implements GoogleMap.InfoWindowAdapter interface.
-class BookmarkInfoWindowAdapter(context: Activity) :
+class BookmarkInfoWindowAdapter(val context: Activity) :
     GoogleMap.InfoWindowAdapter {
 
     // 2 - Declaring property contents to hold contents view.
@@ -43,8 +43,21 @@ class BookmarkInfoWindowAdapter(context: Activity) :
         // To make imageView work.
         val imageView = contents.findViewById<ImageView>(R.id.photo)
 
-        imageView.setImageBitmap((marker?.tag as
-                MapsActivity.PlaceInfo).image)
+        when (marker?.tag) {
+            // 1 - If marker.tag is a MapsActivity.PlaceInfo, sets the
+            // imageView bitmap directly from PlaceInfo.image object.
+            is MapsActivity.PlaceInfo -> {
+                imageView.setImageBitmap((marker.tag as MapsActivity.PlaceInfo).image)
+            }
+            // 2 - If marker.tag is MapsViewModel.BookmarkMarkerView, sets the
+            // imageView bitmap from the BookmarkMarkerView.
+            is MapsViewModel.BookmarkMarkerView -> {
+                var bookMarkview = marker.tag as
+                        MapsViewModel.BookmarkMarkerView
+                // Set imageView bitmap here
+                imageView.setImageBitmap(bookMarkview.getImage(context))
+            }
+        }
 
         return contents
     }
