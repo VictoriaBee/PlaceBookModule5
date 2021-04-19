@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.raywenderlich.placebook.util.FileUtils
 import com.raywenderlich.placebook.util.ImageUtils
 
 // 1 - Tells Room that this is a db entity class.
@@ -22,7 +23,8 @@ data class Bookmark(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var phone: String = "",
-    var notes: String = ""
+    var notes: String = "",
+    var category: String = ""
 )
 {
     // 1 - Automatically generates filename for the bitmap that matches the bookmark ID;
@@ -35,6 +37,13 @@ data class Bookmark(
                 generateImageFilename(it))
         }
     }
+
+    // Deletes the image file associated with the current bookmark.
+    fun deleteImage(context: Context) {
+        id?.let {
+            FileUtils.deleteFile(context, generateImageFilename(it))
+        }
+    }
     // 3 - generateImageFilename() is placed in a companion object;
     //      allows another obj to load image without having to load bookmark from db.
     companion object {
@@ -43,4 +52,16 @@ data class Bookmark(
             return "bookmark$id.png"
         }
     }
+
+    // Adds a category property.
+    data class Bookmark(
+        @PrimaryKey(autoGenerate = true) var id: Long? = null,
+        var placeId: String? = null,
+        var name: String = "",
+        var address: String = "",
+        var latitude: Double = 0.0,
+        var longitude: Double = 0.0,
+        var phone: String = "",
+        var notes: String = "",
+        var category: String = "")
 }

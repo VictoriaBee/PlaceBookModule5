@@ -68,6 +68,7 @@
                         android:id="@+id/imageViewCategory"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:src="@drawable/ic_other"
                         android:layout_marginStart="16dp"
                         android:layout_marginLeft="16dp"
                         android:layout_gravity="bottom"

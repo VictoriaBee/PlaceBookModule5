@@ -12,7 +12,7 @@ interface BookmarkDao {
 
     // 2 - loadAll() uses @Query to define SQL statement to read all bookmarks
     //      from db and return them as List of Bookmarks.
-    @Query("SELECT * FROM Bookmark")
+    @Query("SELECT * FROM Bookmark ORDER BY name")
     fun loadAll(): LiveData<List<Bookmark>>
 
     // 3 - Returns a single Bookmark object.

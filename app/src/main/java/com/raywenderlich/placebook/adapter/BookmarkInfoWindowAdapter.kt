@@ -16,14 +16,8 @@ class BookmarkInfoWindowAdapter(val context: Activity) :
     GoogleMap.InfoWindowAdapter {
 
     // 2 - Declaring property contents to hold contents view.
-    private val contents: View
-
-    // 3 - When GoogleMap calls adapter, inflates content_bookmark_info.xml
-    //      and saves it to contents.
-    init {
-        contents = context.layoutInflater.inflate(
-            R.layout.content_bookmark_info, null)
-    }
+    private val contents: View = context.layoutInflater.inflate(
+        R.layout.content_bookmark_info, null)
 
     // 4 - Overrides getInfoWindow() and returns null to show won't be
     //      replacing entire info window.
@@ -51,9 +45,9 @@ class BookmarkInfoWindowAdapter(val context: Activity) :
             }
             // 2 - If marker.tag is MapsViewModel.BookmarkMarkerView, sets the
             // imageView bitmap from the BookmarkMarkerView.
-            is MapsViewModel.BookmarkMarkerView -> {
+            is MapsViewModel.BookmarkView -> {
                 var bookMarkview = marker.tag as
-                        MapsViewModel.BookmarkMarkerView
+                        MapsViewModel.BookmarkView
                 // Set imageView bitmap here
                 imageView.setImageBitmap(bookMarkview.getImage(context))
             }
