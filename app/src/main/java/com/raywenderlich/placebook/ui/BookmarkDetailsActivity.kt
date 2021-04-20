@@ -3,7 +3,6 @@ package com.raywenderlich.placebook.ui
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -12,7 +11,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -42,7 +40,7 @@ class BookmarkDetailsActivity  : AppCompatActivity(),
 
     // Overrides onCreateOptionsMenu and provides items for the
     // Toolbar by loading in the menu_bookmark_details menu.
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: android.view.Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.menu_bookmark_details, menu)
         return true

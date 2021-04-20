@@ -21,6 +21,13 @@ class BookmarkListAdapter(
         class ViewHolder(v: View,
         private val mapsActivity: MapsActivity) :
                 RecyclerView.ViewHolder(v) {
+                // Called when ViewHolder is initialized.
+                init {
+                    v.setOnClickListener {
+                        val bookmarkView = itemView.tag as MapsViewModel.BookmarkView
+                        mapsActivity.moveToBookmark(bookmarkView)
+                    }
+                }
                     val nameTextView: TextView = v.bookmarkNameTextView
                     val categoryImageView: ImageView = v.bookmarkIcon
                 }

@@ -72,6 +72,7 @@ dependencies {
     // To use material design library in the app.
     implementation 'com.google.android.material:material:1.1.0'
 
+    // To use the coroutine library version.
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core: $coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android: $coroutines_version"
 
